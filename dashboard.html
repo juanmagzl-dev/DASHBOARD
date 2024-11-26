@@ -1,0 +1,489 @@
+<!DOCTYPE html> 
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard de Inversiones</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap" rel="stylesheet">
+    <!-- Añadir jsPDF y autoTable -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <style>
+        :root {
+            --bg-color: #ffffff;
+            --text-color: #333333;
+            --card-bg: #f8f9fa;
+            --border-color: #dee2e6;
+            --accent-color: #00ff95;
+            --button-color: #2d2d2d;
+        }
+
+        .dark-mode {
+            --bg-color: #1a1a1a;
+            --text-color: #ffffff;
+            --card-bg: #2d2d2d;
+            --border-color: #404040;
+        }
+
+        body {
+            font-family: 'Share Tech Mono', monospace;
+            margin: 0;
+            padding: 20px;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            transition: all 0.3s ease;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .card {
+            background-color: var(--card-bg);
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        input, select, button {
+            padding: 8px;
+            border-radius: 5px;
+            border: 1px solid var(--border-color);
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            font-family: 'Share Tech Mono', monospace;
+        }
+
+        button {
+            cursor: pointer;
+            background-color: var(--button-color);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            box-shadow: 0 0 8px rgba(0, 255, 0, 0.4);
+            text-shadow: 0 0 8px rgba(0, 255, 0, 0.4);
+            transition: all 0.3s ease;
+        }
+
+        button:hover {
+            background-color: #1a1a1a;
+            box-shadow: 0 0 15px rgba(0, 255, 0, 0.6);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .charts-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .mode-toggle {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 10px;
+            border-radius: 50%;
+            border: none;
+            cursor: pointer;
+        }
+
+        .edit-mode td input {
+            width: 90%;
+            margin: 0;
+            padding: 5px;
+        }
+
+        .action-btn {
+            padding: 6px 12px;
+            margin: 0 2px;
+            border-radius: 4px;
+            background: transparent;
+            border: 1px solid var(--border-color);
+        }
+
+        .edit-btn {
+            color: #2d2d2d;
+        }
+
+        .delete-btn {
+            color: #f44336;
+        }
+
+        .save-btn {
+            color: #2d2d2d;
+        }
+
+        .cancel-btn {
+            color: #757575;
+        }
+
+        .export-buttons {
+            margin-top: 10px;
+            display: flex;
+            gap: 10px;
+        }
+
+        .export-btn {
+            background-color: #2d2d2d;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 0 8px rgba(0, 255, 0, 0.4);
+            text-shadow: 0 0 8px rgba(0, 255, 0, 0.4);
+        }
+
+        .export-btn:hover {
+            background-color: #1a1a1a;
+            box-shadow: 0 0 15px rgba(0, 255, 0, 0.6);
+        }
+    </style>
+</head>
+<body>
+    <button class="mode-toggle" onclick="toggleDarkMode()"><i class="fas fa-moon"></i></button>
+    
+    <div class="container">
+        <div class="card">
+            <h2>Añadir Transacción</h2>
+            <form id="transactionForm">
+                <div class="form-group">
+                    <select id="assetType" required>
+                        <option value="stock">Acción</option>
+                        <option value="crypto">Criptomoneda</option>
+                    </select>
+                    <input type="text" id="symbol" placeholder="Símbolo" required>
+                    <input type="number" id="quantity" placeholder="Cantidad" step="any" required>
+                    <input type="number" id="price" placeholder="Precio" step="any" required>
+                    <input type="number" id="fee" placeholder="Comisión" step="any" required>
+                    <button type="submit"><i class="fas fa-plus"></i> Añadir</button>
+                </div>
+            </form>
+        </div>
+
+        <div class="card">
+            <h2>Resumen del Portafolio</h2>
+            <div id="summary">
+                <p>Balance Total: <span id="totalBalance">€0.00</span></p>
+                <p>Ganancias/Pérdidas: <span id="profitLoss">€0.00</span></p>
+                <p>Total Comisiones: <span id="totalFees">€0.00</span></p>
+            </div>
+        </div>
+
+        <div class="charts-container">
+            <div class="card">
+                <canvas id="portfolioDistribution"></canvas>
+            </div>
+            <div class="card">
+                <canvas id="performanceChart"></canvas>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>Historial de Transacciones</h2>
+            <div class="export-buttons">
+                <button class="export-btn" onclick="exportToPDF()"><i class="fas fa-file-pdf"></i> Exportar a PDF</button>
+                <button class="export-btn" onclick="exportToExcel()"><i class="fas fa-file-excel"></i> Exportar a Excel</button>
+            </div>
+            <table id="transactionsTable">
+                <thead>
+                    <tr>
+                        <th>Fecha</th>
+                        <th>Tipo</th>
+                        <th>Símbolo</th>
+                        <th>Cantidad</th>
+                        <th>Precio</th>
+                        <th>Comisión</th>
+                        <th>Total</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        let transactions = JSON.parse(localStorage.getItem('transactions')) || [];
+        let isDarkMode = localStorage.getItem('darkMode') === 'true';
+
+        function exportToPDF() {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            
+            // Título del documento
+            doc.setFontSize(20);
+            doc.text('Historial de Transacciones', 14, 20);
+            
+            // Preparar los datos para la tabla
+            const headers = [['Fecha', 'Tipo', 'Símbolo', 'Cantidad', 'Precio', 'Comisión', 'Total']];
+            const data = transactions.map(t => [
+                new Date(t.date).toLocaleDateString(),
+                t.type === 'stock' ? 'Acción' : 'Criptomoneda',
+                t.symbol,
+                t.quantity.toString(),
+                `€${t.price.toFixed(2)}`,
+                `€${t.fee.toFixed(2)}`,
+                `€${(t.quantity * t.price).toFixed(2)}`
+            ]);
+            
+            // Crear la tabla
+            doc.autoTable({
+                head: headers,
+                body: data,
+                startY: 30,
+                theme: 'grid',
+                styles: {
+                    fontSize: 8,
+                    cellPadding: 2
+                },
+                headStyles: {
+                    fillColor: [45, 45, 45],
+                    textColor: 255
+                },
+                alternateRowStyles: {
+                    fillColor: [245, 245, 245]
+                }
+            });
+            
+            // Guardar el PDF
+            doc.save('transacciones.pdf');
+        }
+
+        function exportToExcel() {
+            const data = transactions.map(t => ({
+                Fecha: new Date(t.date).toLocaleDateString(),
+                Tipo: t.type,
+                Símbolo: t.symbol,
+                Cantidad: t.quantity,
+                Precio: t.price,
+                Comisión: t.fee,
+                Total: t.quantity * t.price
+            }));
+            
+            const ws = XLSX.utils.json_to_sheet(data);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, "Transacciones");
+            XLSX.writeFile(wb, 'transacciones.xlsx');
+        }
+
+        function toggleDarkMode() {
+            isDarkMode = !isDarkMode;
+            document.body.classList.toggle('dark-mode');
+            localStorage.setItem('darkMode', isDarkMode);
+            const modeIcon = document.querySelector('.mode-toggle i');
+            modeIcon.className = isDarkMode ? 'fas fa-sun' : 'fas fa-moon';
+            updateCharts();
+        }
+
+        if (isDarkMode) {
+            document.body.classList.add('dark-mode');
+            document.querySelector('.mode-toggle i').className = 'fas fa-sun';
+        }
+
+        const portfolioChart = new Chart(document.getElementById('portfolioDistribution'), {
+            type: 'doughnut',
+            data: {
+                labels: [],
+                datasets: [{
+                    data: [],
+                    backgroundColor: []
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        position: 'right'
+                    }
+                }
+            }
+        });
+
+        const performanceChart = new Chart(document.getElementById('performanceChart'), {
+            type: 'line',
+            data: {
+                labels: [],
+                datasets: [{
+                    label: 'Valor del Portafolio',
+                    data: [],
+                    borderColor: '#2d2d2d',
+                    tension: 0.1
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+
+        document.getElementById('transactionForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const transaction = {
+                date: new Date().toISOString(),
+                type: document.getElementById('assetType').value,
+                symbol: document.getElementById('symbol').value.toUpperCase(),
+                quantity: parseFloat(document.getElementById('quantity').value),
+                price: parseFloat(document.getElementById('price').value),
+                fee: parseFloat(document.getElementById('fee').value)
+            };
+
+            transactions.push(transaction);
+            localStorage.setItem('transactions', JSON.stringify(transactions));
+            
+            updateDashboard();
+            this.reset();
+        });
+
+        function updateDashboard() {
+            updateSummary();
+            updateTransactionsTable();
+            updateCharts();
+        }
+
+        function updateSummary() {
+            let totalBalance = 0;
+            let totalFees = 0;
+
+            transactions.forEach(t => {
+                totalBalance += (t.quantity * t.price);
+                totalFees += t.fee;
+            });
+
+            document.getElementById('totalBalance').textContent = `€${totalBalance.toFixed(2)}`;
+            document.getElementById('totalFees').textContent = `€${totalFees.toFixed(2)}`;
+        }
+
+        function updateTransactionsTable() {
+            const tbody = document.querySelector('#transactionsTable tbody');
+            tbody.innerHTML = '';
+
+            transactions.forEach((t, index) => {
+                const row = tbody.insertRow();
+                row.innerHTML = `
+                    <td>${new Date(t.date).toLocaleDateString()}</td>
+                    <td>${t.type}</td>
+                    <td>${t.symbol}</td>
+                    <td>${t.quantity}</td>
+                    <td>€${t.price.toFixed(2)}</td>
+                    <td>€${t.fee.toFixed(2)}</td>
+                    <td>€${(t.quantity * t.price).toFixed(2)}</td>
+                    <td>
+                        <button class="action-btn edit-btn" onclick="editTransaction(${index})"><i class="fas fa-edit"></i></button>
+                        <button class="action-btn delete-btn" onclick="deleteTransaction(${index})"><i class="fas fa-trash-alt"></i></button>
+                    </td>
+                `;
+            });
+        }
+
+        function editTransaction(index) {
+            const transaction = transactions[index];
+            const row = document.querySelector(`#transactionsTable tbody`).rows[index];
+            row.classList.add('edit-mode');
+            
+            row.innerHTML = `
+                <td><input type="date" value="${transaction.date.split('T')[0]}"></td>
+                <td>
+                    <select>
+                        <option value="stock" ${transaction.type === 'stock' ? 'selected' : ''}>Acción</option>
+                        <option value="crypto" ${transaction.type === 'crypto' ? 'selected' : ''}>Criptomoneda</option>
+                    </select>
+                </td>
+                <td><input type="text" value="${transaction.symbol}"></td>
+                <td><input type="number" step="any" value="${transaction.quantity}"></td>
+                <td><input type="number" step="any" value="${transaction.price}"></td>
+                <td><input type="number" step="any" value="${transaction.fee}"></td>
+                <td>€${(transaction.quantity * transaction.price).toFixed(2)}</td>
+                <td>
+                    <button class="action-btn save-btn" onclick="saveTransaction(${index})"><i class="fas fa-save"></i></button>
+                    <button class="action-btn cancel-btn" onclick="updateTransactionsTable()"><i class="fas fa-times"></i></button>
+                </td>
+            `;
+        }
+
+        function saveTransaction(index) {
+            const row = document.querySelector(`#transactionsTable tbody`).rows[index];
+            const inputs = row.querySelectorAll('input, select');
+            
+            transactions[index] = {
+                date: new Date(inputs[0].value).toISOString(),
+                type: inputs[1].value,
+                symbol: inputs[2].value.toUpperCase(),
+                quantity: parseFloat(inputs[3].value),
+                price: parseFloat(inputs[4].value),
+                fee: parseFloat(inputs[5].value)
+            };
+            
+            localStorage.setItem('transactions', JSON.stringify(transactions));
+            updateDashboard();
+        }
+
+        function updateCharts() {
+            // Actualizar gráfico de distribución
+            const assets = {};
+            transactions.forEach(t => {
+                if (!assets[t.symbol]) {
+                    assets[t.symbol] = 0;
+                }
+                assets[t.symbol] += t.quantity * t.price;
+            });
+
+            portfolioChart.data.labels = Object.keys(assets);
+            portfolioChart.data.datasets[0].data = Object.values(assets);
+            portfolioChart.data.datasets[0].backgroundColor = Object.keys(assets).map((_, i) => 
+                `hsl(${(i * 360) / Object.keys(assets).length}, 70%, 50%)`
+            );
+            portfolioChart.update();
+
+            // Actualizar gráfico de rendimiento
+            const dates = [...new Set(transactions.map(t => t.date.split('T')[0]))].sort();
+            const values = dates.map(date => {
+                return transactions
+                    .filter(t => t.date.split('T')[0] <= date)
+                    .reduce((acc, t) => acc + (t.quantity * t.price), 0);
+            });
+
+            performanceChart.data.labels = dates.map(d => new Date(d).toLocaleDateString());
+            performanceChart.data.datasets[0].data = values;
+            performanceChart.update();
+        }
+
+        function deleteTransaction(index) {
+            if (confirm('¿Estás seguro de que quieres eliminar esta transacción?')) {
+                transactions.splice(index, 1);
+                localStorage.setItem('transactions', JSON.stringify(transactions));
+                updateDashboard();
+            }
+        }
+
+        // Inicializar dashboard
+        updateDashboard();
+    </script>
+</body>
+</html>
