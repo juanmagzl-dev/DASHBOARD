@@ -137,9 +137,10 @@
         }
 
         .export-buttons {
-            margin-top: 10px;
+            margin-top: 20px;
             display: flex;
             gap: 10px;
+            justify-content: center;
         }
 
         .export-btn {
@@ -157,6 +158,31 @@
             background-color: #3da861;
             box-shadow: 0 0 15px rgba(80, 200, 120, 0.5);
         }
+
+        /* Estilos para el filtro */
+        .filter-section {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .filter-section input,
+        .filter-section select {
+            min-width: 150px;
+        }
+
+        .filter-label {
+            font-size: 0.9em;
+            margin-right: 5px;
+        }
+
+        .filter-buttons {
+            display: flex;
+            gap: 10px;
+            margin-left: auto;
+        }
     </style>
 </head>
 <body>
@@ -172,8 +198,8 @@
                         <option value="crypto">Criptomoneda</option>
                     </select>
                     <input type="text" id="symbol" placeholder="Símbolo" required>
-                    <input type="number" id="quantity" placeholder="Cantidad" step="any" required>
-                    <input type="number" id="price" placeholder="Precio" step="any" required>
+                    <input type="number" id="quantity" placeholder="Cantidad Posesión" step="any" required>
+                    <input type="number" id="price" placeholder="Precio Mercado" step="any" required>
                     <input type="number" id="fee" placeholder="Comisión" step="any" required>
                     <button type="submit"><i class="fas fa-plus"></i> Añadir</button>
                 </div>
@@ -200,9 +226,31 @@
 
         <div class="card">
             <h2>Historial de Transacciones</h2>
-            <div class="export-buttons">
-                <button class="export-btn" onclick="exportToPDF()"><i class="fas fa-file-pdf"></i> Exportar a PDF</button>
-                <button class="export-btn" onclick="exportToExcel()"><i class="fas fa-file-excel"></i> Exportar a Excel</button>
+            <div class="filter-section">
+                <div>
+                    <span class="filter-label">Símbolo:</span>
+                    <input type="text" id="symbolFilter" placeholder="Filtrar por símbolo">
+                </div>
+                <div>
+                    <span class="filter-label">Tipo:</span>
+                    <select id="typeFilter">
+                        <option value="">Todos</option>
+                        <option value="stock">Acción</option>
+                        <option value="crypto">Criptomoneda</option>
+                    </select>
+                </div>
+                <div>
+                    <span class="filter-label">Desde:</span>
+                    <input type="date" id="dateFromFilter">
+                </div>
+                <div>
+                    <span class="filter-label">Hasta:</span>
+                    <input type="date" id="dateToFilter">
+                </div>
+                <div class="filter-buttons">
+                    <button onclick="applyFilters()">Aplicar Filtros</button>
+                    <button onclick="clearFilters()">Limpiar Filtros</button>
+                </div>
             </div>
             <table id="transactionsTable">
                 <thead>
@@ -219,11 +267,16 @@
                 </thead>
                 <tbody></tbody>
             </table>
+            <div class="export-buttons">
+                <button class="export-btn" onclick="exportToPDF()"><i class="fas fa-file-pdf"></i> Exportar a PDF</button>
+                <button class="export-btn" onclick="exportToExcel()"><i class="fas fa-file-excel"></i> Exportar a Excel</button>
+            </div>
         </div>
     </div>
 
     <script>
         let transactions = JSON.parse(localStorage.getItem('transactions')) || [];
+        let filteredTransactions = [...transactions];
         let isDarkMode = localStorage.getItem('darkMode') === 'true';
 
         function exportToPDF() {
@@ -236,7 +289,7 @@
             
             // Preparar los datos para la tabla
             const headers = [['Fecha', 'Tipo', 'Símbolo', 'Cantidad', 'Precio', 'Comisión', 'Total']];
-            const data = transactions.map(t => [
+            const data = filteredTransactions.map(t => [
                 new Date(t.date).toLocaleDateString(),
                 t.type === 'stock' ? 'Acción' : 'Criptomoneda',
                 t.symbol,
@@ -270,7 +323,7 @@
         }
 
         function exportToExcel() {
-            const data = transactions.map(t => ({
+            const data = filteredTransactions.map(t => ({
                 Fecha: new Date(t.date).toLocaleDateString(),
                 Tipo: t.type,
                 Símbolo: t.symbol,
@@ -284,6 +337,34 @@
             const wb = XLSX.utils.book_new();
             XLSX.utils.book_append_sheet(wb, ws, "Transacciones");
             XLSX.writeFile(wb, 'transacciones.xlsx');
+        }
+
+        function applyFilters() {
+            const symbolFilter = document.getElementById('symbolFilter').value.toUpperCase();
+            const typeFilter = document.getElementById('typeFilter').value;
+            const dateFromFilter = document.getElementById('dateFromFilter').value;
+            const dateToFilter = document.getElementById('dateToFilter').value;
+
+            filteredTransactions = transactions.filter(t => {
+                const matchSymbol = !symbolFilter || t.symbol.includes(symbolFilter);
+                const matchType = !typeFilter || t.type === typeFilter;
+                const matchDateFrom = !dateFromFilter || t.date.split('T')[0] >= dateFromFilter;
+                const matchDateTo = !dateToFilter || t.date.split('T')[0] <= dateToFilter;
+
+                return matchSymbol && matchType && matchDateFrom && matchDateTo;
+            });
+
+            updateTransactionsTable();
+        }
+
+        function clearFilters() {
+            document.getElementById('symbolFilter').value = '';
+            document.getElementById('typeFilter').value = '';
+            document.getElementById('dateFromFilter').value = '';
+            document.getElementById('dateToFilter').value = '';
+            
+            filteredTransactions = [...transactions];
+            updateTransactionsTable();
         }
 
         function toggleDarkMode() {
@@ -353,6 +434,7 @@
             };
 
             transactions.push(transaction);
+            filteredTransactions = [...transactions];
             localStorage.setItem('transactions', JSON.stringify(transactions));
             
             updateDashboard();
@@ -369,7 +451,7 @@
             let totalBalance = 0;
             let totalFees = 0;
 
-            transactions.forEach(t => {
+            filteredTransactions.forEach(t => {
                 totalBalance += (t.quantity * t.price);
                 totalFees += t.fee;
             });
@@ -382,11 +464,11 @@
             const tbody = document.querySelector('#transactionsTable tbody');
             tbody.innerHTML = '';
 
-            transactions.forEach((t, index) => {
+            filteredTransactions.forEach((t, index) => {
                 const row = tbody.insertRow();
                 row.innerHTML = `
                     <td>${new Date(t.date).toLocaleDateString()}</td>
-                    <td>${t.type}</td>
+                    <td>${t.type === 'stock' ? 'Acción' : 'Criptomoneda'}</td>
                     <td>${t.symbol}</td>
                     <td>${t.quantity}</td>
                     <td>€${t.price.toFixed(2)}</td>
@@ -401,7 +483,7 @@
         }
 
         function editTransaction(index) {
-            const transaction = transactions[index];
+            const transaction = filteredTransactions[index];
             const row = document.querySelector(`#transactionsTable tbody`).rows[index];
             row.classList.add('edit-mode');
             
@@ -428,8 +510,9 @@
         function saveTransaction(index) {
             const row = document.querySelector(`#transactionsTable tbody`).rows[index];
             const inputs = row.querySelectorAll('input, select');
+            const originalIndex = transactions.indexOf(filteredTransactions[index]);
             
-            transactions[index] = {
+            const updatedTransaction = {
                 date: new Date(inputs[0].value).toISOString(),
                 type: inputs[1].value,
                 symbol: inputs[2].value.toUpperCase(),
@@ -438,6 +521,9 @@
                 fee: parseFloat(inputs[5].value)
             };
             
+            transactions[originalIndex] = updatedTransaction;
+            filteredTransactions[index] = updatedTransaction;
+            
             localStorage.setItem('transactions', JSON.stringify(transactions));
             updateDashboard();
         }
@@ -445,7 +531,7 @@
         function updateCharts() {
             // Actualizar gráfico de distribución
             const assets = {};
-            transactions.forEach(t => {
+            filteredTransactions.forEach(t => {
                 if (!assets[t.symbol]) {
                     assets[t.symbol] = 0;
                 }
@@ -460,9 +546,9 @@
             portfolioChart.update();
 
             // Actualizar gráfico de rendimiento
-            const dates = [...new Set(transactions.map(t => t.date.split('T')[0]))].sort();
+            const dates = [...new Set(filteredTransactions.map(t => t.date.split('T')[0]))].sort();
             const values = dates.map(date => {
-                return transactions
+                return filteredTransactions
                     .filter(t => t.date.split('T')[0] <= date)
                     .reduce((acc, t) => acc + (t.quantity * t.price), 0);
             });
@@ -474,7 +560,9 @@
 
         function deleteTransaction(index) {
             if (confirm('¿Estás seguro de que quieres eliminar esta transacción?')) {
-                transactions.splice(index, 1);
+                const originalIndex = transactions.indexOf(filteredTransactions[index]);
+                transactions.splice(originalIndex, 1);
+                filteredTransactions.splice(index, 1);
                 localStorage.setItem('transactions', JSON.stringify(transactions));
                 updateDashboard();
             }
