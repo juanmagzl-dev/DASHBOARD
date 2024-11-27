@@ -178,24 +178,7 @@
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
             border: 1px solid rgba(255, 255, 255, 0.1);
             transition: all 0.3s ease;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .crypto-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
-        }
-
-        .crypto-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(45deg, transparent, rgba(80, 200, 120, 0.1));
-            pointer-events: none;
+            height: 600px;
         }
 
         .crypto-header {
@@ -235,24 +218,23 @@
             color: #FF6B6B;
         }
 
-        .view-more-btn {
-            display: inline-block;
-            padding: 10px 20px;
-            background: var(--button-color);
-            color: white;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            text-decoration: none;
+        .crypto-stats {
+            margin: 15px 0;
             font-size: 0.9em;
-            margin-top: 15px;
-            transition: all 0.3s ease;
-            text-align: center;
         }
 
-        .view-more-btn:hover {
-            background: #3da15f;
-            box-shadow: 0 0 15px var(--glow-color);
+        .stat-row {
+            display: flex;
+            justify-content: space-between;
+            margin: 5px 0;
+            padding: 5px 0;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .chart-container {
+            width: 100%;
+            height: 250px;
+            margin-top: 20px;
         }
 
         .mode-toggle {
@@ -281,20 +263,28 @@
             box-shadow: 0 0 10px var(--glow-color);
         }
 
-        .crypto-stats {
-            margin: 15px 0;
-            font-size: 0.9em;
+        .market-sentiment {
+            text-align: center;
+            margin-top: 10px;
+            padding: 5px;
+            border-radius: 5px;
+            font-weight: bold;
         }
 
-        .stat-row {
-            display: flex;
-            justify-content: space-between;
-            margin: 5px 0;
-            padding: 5px 0;
-            border-bottom: 1px solid var(--border-color);
+        .sentiment-bullish {
+            background-color: rgba(80, 200, 120, 0.2);
+            color: #50C878;
         }
 
-        
+        .sentiment-bearish {
+            background-color: rgba(255, 107, 107, 0.2);
+            color: #FF6B6B;
+        }
+
+        .sentiment-neutral {
+            background-color: rgba(128, 128, 128, 0.2);
+            color: #808080;
+        }
     </style>
 </head>
 <body>
@@ -369,7 +359,6 @@
     </div>
 
     <script>
-        // Cargar el modo guardado al iniciar
         document.addEventListener('DOMContentLoaded', () => {
             const darkMode = localStorage.getItem('darkMode');
             if (darkMode === 'true') {
@@ -379,8 +368,9 @@
 
         function toggleDarkMode() {
             document.body.classList.toggle('dark-mode');
-            // Guardar el estado actual en localStorage
             localStorage.setItem('darkMode', document.body.classList.contains('dark-mode'));
+            // Actualizar los gráficos cuando se cambia el modo
+            updateAllCharts();
         }
 
         function formatPrice(price) {
@@ -393,6 +383,28 @@
         let cryptoData = [];
         let currentSort = null;
         let currentSortType = null;
+        let charts = {}; // Almacenar las instancias de los gráficos
+
+        async function getMarketSentiment(symbol) {
+            try {
+                const response = await fetch(`https://api.binance.com/api/v3/depth?symbol=${symbol}&limit=100`);
+                const data = await response.json();
+                
+                let bidVolume = data.bids.reduce((total, [price, quantity]) => total + parseFloat(price) * parseFloat(quantity), 0);
+                let askVolume = data.asks.reduce((total, [price, quantity]) => total + parseFloat(price) * parseFloat(quantity), 0);
+                
+                if (bidVolume > askVolume) {
+                    return { sentiment: 'alcista', class: 'sentiment-bullish' };
+                } else if (askVolume > bidVolume) {
+                    return { sentiment: 'bajista', class: 'sentiment-bearish' };
+                } else {
+                    return { sentiment: 'neutral', class: 'sentiment-neutral' };
+                }
+            } catch (error) {
+                console.error('Error fetching market sentiment:', error);
+                return { sentiment: 'neutral', class: 'sentiment-neutral' };
+            }
+        }
 
         function handleSearch(searchTerm) {
             const datalist = document.getElementById('cryptoList');
@@ -462,13 +474,17 @@
             }
         }
 
-        function displayCryptoCard(data) {
+        async function displayCryptoCard(data) {
             const container = document.getElementById('crypto-container');
             const changeClass = data.priceChange >= 0 ? 'positive' : 'negative';
             const changeSymbol = data.priceChange >= 0 ? '↑' : '↓';
+            
+            // Obtener el sentimiento del mercado
+            const sentiment = await getMarketSentiment(data.symbol);
 
             const card = document.createElement('div');
             card.classList.add('crypto-card');
+            
             card.innerHTML = `
                 <div class="crypto-header">
                     <span class="crypto-name">${data.name}</span>
@@ -496,11 +512,93 @@
                         <span>${formatPrice(data.marketCap)}</span>
                     </div>
                 </div>
-                <a href="charts.html?crypto=${data.symbol}" class="view-more-btn">
-                    <i class="fas fa-chart-line"></i> Ver Gráfico
-                </a>
+                <div class="chart-container">
+                    <canvas id="chart-${data.symbol}"></canvas>
+                </div>
+                <div class="market-sentiment ${sentiment.class}">
+                    Sentimiento: ${sentiment.sentiment}
+                </div>
             `;
+
             container.appendChild(card);
+            
+            // Cargar y mostrar el gráfico inmediatamente
+            loadAndRenderChart(data.symbol);
+        }
+
+        async function loadAndRenderChart(symbol) {
+            const chartData = await fetchChartData(symbol);
+            const ctx = document.getElementById(`chart-${symbol}`).getContext('2d');
+            
+            // Destruir el gráfico existente si hay uno
+            if (charts[symbol]) {
+                charts[symbol].destroy();
+            }
+
+            // Crear nuevo gráfico
+            charts[symbol] = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: chartData.labels,
+                    datasets: [{
+                        label: 'Precio',
+                        data: chartData.prices,
+                        borderColor: '#50C878',
+                        tension: 0.4,
+                        fill: false
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: false,
+                            ticks: {
+                                color: getComputedStyle(document.body).getPropertyValue('--text-color')
+                            }
+                        },
+                        x: {
+                            ticks: {
+                                color: getComputedStyle(document.body).getPropertyValue('--text-color'),
+                                maxRotation: 45,
+                                minRotation: 45
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            labels: {
+                                color: getComputedStyle(document.body).getPropertyValue('--text-color')
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        async function fetchChartData(symbol) {
+            try {
+                const response = await fetch(`https://api.binance.com/api/v3/klines?symbol=${symbol}&interval=1d&limit=30`);
+                const data = await response.json();
+                
+                return {
+                    labels: data.map(d => new Date(d[0]).toLocaleDateString()),
+                    prices: data.map(d => parseFloat(d[4]))
+                };
+            } catch (error) {
+                console.error('Error fetching chart data:', error);
+                return {
+                    labels: [],
+                    prices: []
+                };
+            }
+        }
+
+        function updateAllCharts() {
+            Object.keys(charts).forEach(symbol => {
+                loadAndRenderChart(symbol);
+            });
         }
 
         function filterCryptos() {
@@ -510,6 +608,7 @@
             const minVolatility = parseFloat(document.getElementById('volatilityFilter').value);
             const container = document.getElementById('crypto-container');
             container.innerHTML = '';
+            charts = {}; // Limpiar las instancias de los gráficos
             
             let filteredData = cryptoData.filter(data => 
                 (data.name.toLowerCase().includes(searchTerm) ||
@@ -550,47 +649,31 @@
                 { name: 'Uniswap', symbol: 'UNIUSDT', network: 'Ethereum', type: 'defi' },
                 { name: 'Polygon', symbol: 'MATICUSDT', network: 'Polygon', type: 'layer2' },
                 { name: 'Stellar', symbol: 'XLMUSDT', network: 'Stellar', type: 'altcoin' },
+                { name: 'VeChain', symbol: 'VETUSDT', network: 'VeChain', type: 'layer1' },
                 { name: 'Cosmos', symbol: 'ATOMUSDT', network: 'Cosmos', type: 'layer1' },
-                { name: 'Near Protocol', symbol: 'NEARUSDT', network: 'NEAR Protocol', type: 'layer1' },
-                { name: 'ApeCoin', symbol: 'APEUSDT', network: 'Ethereum', type: 'nft' },
                 { name: 'Algorand', symbol: 'ALGOUSDT', network: 'Algorand', type: 'layer1' },
                 { name: 'Filecoin', symbol: 'FILUSDT', network: 'Filecoin', type: 'altcoin' },
-                { name: 'VeChain', symbol: 'VETUSDT', network: 'VeChain', type: 'altcoin' },
-                { name: 'The Sandbox', symbol: 'SANDUSDT', network: 'Ethereum', type: 'nft' },
-                { name: 'Decentraland', symbol: 'MANAUSDT', network: 'Ethereum', type: 'nft' },
                 { name: 'Tezos', symbol: 'XTZUSDT', network: 'Tezos', type: 'layer1' },
-                { name: 'Zilliqa', symbol: 'ZILUSDT', network: 'Zilliqa', type: 'layer1' },
                 { name: 'EOS', symbol: 'EOSUSDT', network: 'EOS', type: 'layer1' },
-                { name: 'Chiliz', symbol: 'CHZUSDT', network: 'Ethereum', type: 'nft' },
-                { name: 'Theta Network', symbol: 'THETAUSDT', network: 'Theta', type: 'altcoin' },
-                { name: 'Maker', symbol: 'MKRUSDT', network: 'Ethereum', type: 'defi' },
-                { name: 'Curve DAO Token', symbol: 'CRVUSDT', network: 'Ethereum', type: 'defi' },
-                { name: 'Dash', symbol: 'DASHUSDT', network: 'Dash', type: 'altcoin' },
-                // Nuevas criptomonedas añadidas
                 { name: 'Aave', symbol: 'AAVEUSDT', network: 'Ethereum', type: 'defi' },
-                { name: 'Compound', symbol: 'COMPUSDT', network: 'Ethereum', type: 'defi' },
-                { name: 'Yearn.finance', symbol: 'YFIUSDT', network: 'Ethereum', type: 'defi' },
-                { name: 'SushiSwap', symbol: 'SUSHIUSDT', network: 'Ethereum', type: 'defi' },
-                { name: 'PancakeSwap', symbol: 'CAKEUSDT', network: 'Binance Smart Chain', type: 'defi' },
+                { name: 'Theta', symbol: 'THETAUSDT', network: 'Theta', type: 'layer1' },
+                // Añadiendo 16 criptomonedas más
+                { name: 'Decentraland', symbol: 'MANAUSDT', network: 'Ethereum', type: 'nft' },
+                { name: 'The Sandbox', symbol: 'SANDUSDT', network: 'Ethereum', type: 'nft' },
                 { name: 'Axie Infinity', symbol: 'AXSUSDT', network: 'Ethereum', type: 'nft' },
-                { name: 'Enjin Coin', symbol: 'ENJUSDT', network: 'Ethereum', type: 'nft' },
-                { name: 'Flow', symbol: 'FLOWUSDT', network: 'Flow', type: 'nft' },
-                { name: 'Basic Attention Token', symbol: 'BATUSDT', network: 'Ethereum', type: 'altcoin' },
-                { name: 'Loopring', symbol: 'LRCUSDT', network: 'Ethereum', type: 'layer2' },
-                { name: 'Harmony', symbol: 'ONEUSDT', network: 'Harmony', type: 'layer1' },
+                { name: 'PancakeSwap', symbol: 'CAKEUSDT', network: 'Binance Smart Chain', type: 'defi' },
                 { name: 'Fantom', symbol: 'FTMUSDT', network: 'Fantom', type: 'layer1' },
+                { name: 'Near Protocol', symbol: 'NEARUSDT', network: 'NEAR Protocol', type: 'layer1' },
+                { name: 'Hedera', symbol: 'HBARUSDT', network: 'Hedera', type: 'layer1' },
+                { name: 'Curve DAO', symbol: 'CRVUSDT', network: 'Ethereum', type: 'defi' },
+                { name: 'Maker', symbol: 'MKRUSDT', network: 'Ethereum', type: 'defi' },
+                { name: 'Compound', symbol: 'COMPUSDT', network: 'Ethereum', type: 'defi' },
+                { name: 'Enjin Coin', symbol: 'ENJUSDT', network: 'Ethereum', type: 'nft' },
+                { name: 'Zilliqa', symbol: 'ZILUSDT', network: 'Zilliqa', type: 'layer1' },
+                { name: 'Basic Attention', symbol: 'BATUSDT', network: 'Ethereum', type: 'altcoin' },
+                { name: 'Dash', symbol: 'DASHUSDT', network: 'Dash', type: 'altcoin' },
                 { name: 'Waves', symbol: 'WAVESUSDT', network: 'Waves', type: 'layer1' },
-                { name: 'IOTA', symbol: 'IOTAUSDT', network: 'IOTA', type: 'altcoin' },
-                { name: 'Neo', symbol: 'NEOUSDT', network: 'Neo', type: 'layer1' },
-                { name: 'Kusama', symbol: 'KSMUSDT', network: 'Kusama', type: 'layer1' },
-                { name: 'Qtum', symbol: 'QTUMUSDT', network: 'Qtum', type: 'layer1' },
-                { name: 'ICON', symbol: 'ICXUSDT', network: 'ICON', type: 'layer1' },
-                { name: 'Ontology', symbol: 'ONTUSDT', network: 'Ontology', type: 'layer1' },
-                { name: 'OMG Network', symbol: 'OMGUSDT', network: 'Ethereum', type: 'layer2' },
-                { name: 'Ravencoin', symbol: 'RVNUSDT', network: 'Ravencoin', type: 'altcoin' },
-                { name: 'Storj', symbol: 'STORJUSDT', network: 'Ethereum', type: 'altcoin' },
-                { name: 'NEM', symbol: 'XEMUSDT', network: 'NEM', type: 'layer1' },
-                { name: 'Stacks', symbol: 'STXUSDT', network: 'Stacks', type: 'layer1' }
+                { name: 'Harmony', symbol: 'ONEUSDT', network: 'Harmony', type: 'layer1' }
             ];
 
             const promises = cryptos.map(async crypto => {
