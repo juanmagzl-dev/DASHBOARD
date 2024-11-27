@@ -262,6 +262,29 @@
             color: white;
             box-shadow: 0 0 10px var(--glow-color);
         }
+
+        .market-sentiment {
+            text-align: center;
+            margin-top: 10px;
+            padding: 5px;
+            border-radius: 5px;
+            font-weight: bold;
+        }
+
+        .sentiment-bullish {
+            background-color: rgba(80, 200, 120, 0.2);
+            color: #50C878;
+        }
+
+        .sentiment-bearish {
+            background-color: rgba(255, 107, 107, 0.2);
+            color: #FF6B6B;
+        }
+
+        .sentiment-neutral {
+            background-color: rgba(128, 128, 128, 0.2);
+            color: #808080;
+        }
     </style>
 </head>
 <body>
@@ -362,6 +385,27 @@
         let currentSortType = null;
         let charts = {}; // Almacenar las instancias de los gráficos
 
+        async function getMarketSentiment(symbol) {
+            try {
+                const response = await fetch(`https://api.binance.com/api/v3/depth?symbol=${symbol}&limit=100`);
+                const data = await response.json();
+                
+                let bidVolume = data.bids.reduce((total, [price, quantity]) => total + parseFloat(price) * parseFloat(quantity), 0);
+                let askVolume = data.asks.reduce((total, [price, quantity]) => total + parseFloat(price) * parseFloat(quantity), 0);
+                
+                if (bidVolume > askVolume) {
+                    return { sentiment: 'alcista', class: 'sentiment-bullish' };
+                } else if (askVolume > bidVolume) {
+                    return { sentiment: 'bajista', class: 'sentiment-bearish' };
+                } else {
+                    return { sentiment: 'neutral', class: 'sentiment-neutral' };
+                }
+            } catch (error) {
+                console.error('Error fetching market sentiment:', error);
+                return { sentiment: 'neutral', class: 'sentiment-neutral' };
+            }
+        }
+
         function handleSearch(searchTerm) {
             const datalist = document.getElementById('cryptoList');
             datalist.innerHTML = '';
@@ -430,10 +474,13 @@
             }
         }
 
-        function displayCryptoCard(data) {
+        async function displayCryptoCard(data) {
             const container = document.getElementById('crypto-container');
             const changeClass = data.priceChange >= 0 ? 'positive' : 'negative';
             const changeSymbol = data.priceChange >= 0 ? '↑' : '↓';
+            
+            // Obtener el sentimiento del mercado
+            const sentiment = await getMarketSentiment(data.symbol);
 
             const card = document.createElement('div');
             card.classList.add('crypto-card');
@@ -467,6 +514,9 @@
                 </div>
                 <div class="chart-container">
                     <canvas id="chart-${data.symbol}"></canvas>
+                </div>
+                <div class="market-sentiment ${sentiment.class}">
+                    Sentimiento: ${sentiment.sentiment}
                 </div>
             `;
 
