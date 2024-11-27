@@ -1,0 +1,60 @@
+{
+    "questions": [
+      {
+        "question": "¿Cuál es el precio de Bitcoin?",
+        "category": "crypto",
+        "response": "Para obtener el precio de Bitcoin, puedes consultar una API de precios de criptomonedas como CoinGecko o CoinMarketCap."
+      },
+      {
+        "question": "¿Cómo está el precio de Ethereum?",
+        "category": "crypto",
+        "response": "El precio de Ethereum cambia constantemente, te recomiendo revisar un sitio como CoinGecko o Binance para obtener la información actualizada."
+      },
+      {
+        "question": "¿Debería invertir en Bitcoin ahora?",
+        "category": "investment",
+        "response": "Las decisiones de inversión dependen de muchos factores. Es importante realizar un análisis detallado del mercado, estudiar las tendencias y considerar tu tolerancia al riesgo."
+      },
+      {
+        "question": "¿Es un buen momento para invertir en criptomonedas?",
+        "category": "investment",
+        "response": "El mercado de criptomonedas puede ser volátil, por lo que es esencial hacer una investigación y consultar con expertos antes de tomar decisiones. Te sugiero diversificar tus inversiones."
+      },
+      {
+        "question": "¿Qué criptomonedas debo comprar?",
+        "category": "crypto",
+        "response": "Depende de tu perfil de inversión y tolerancia al riesgo. Algunas criptomonedas populares incluyen Bitcoin, Ethereum, y Binance Coin, pero siempre es importante hacer tu propia investigación."
+      },
+      {
+        "question": "¿Cómo puedo empezar a invertir en criptomonedas?",
+        "category": "investment",
+        "response": "Puedes comenzar a invertir en criptomonedas registrándote en plataformas como Binance, Coinbase o Kraken. Asegúrate de entender cómo funciona la compra, venta y almacenamiento de criptomonedas."
+      },
+      {
+        "question": "¿Qué es una altcoin?",
+        "category": "crypto",
+        "response": "Las altcoins son criptomonedas que no son Bitcoin. Son alternativas creadas con diferentes objetivos y características. Algunos ejemplos populares incluyen Ethereum, Ripple (XRP) y Litecoin."
+      },
+      {
+        "question": "¿Qué es la minería de criptomonedas?",
+        "category": "crypto",
+        "response": "La minería de criptomonedas es el proceso de validar transacciones y asegurar la red utilizando computadoras para resolver complejos problemas matemáticos. A cambio, los mineros reciben criptomonedas como recompensa."
+      },
+      {
+        "question": "¿Es más seguro invertir en Bitcoin o en Ethereum?",
+        "category": "investment",
+        "response": "Ambos tienen características de seguridad robustas, pero la seguridad de cualquier inversión depende de cómo la gestionas. Bitcoin es más estable y seguro en términos de adopción, pero Ethereum tiene una mayor flexibilidad para contratos inteligentes."
+      },
+      {
+        "question": "¿Qué es un 'HODL' en criptomonedas?",
+        "category": "crypto",
+        "response": "'HODL' es un término utilizado en el mundo de las criptomonedas que significa 'mantener' o 'no vender'. Es una estrategia popular entre los inversores que creen que el valor de una criptomoneda aumentará a largo plazo."
+      },
+      {
+        "question": "¿Qué significa el 'halving' de Bitcoin?",
+        "category": "crypto",
+        "response": "El 'halving' de Bitcoin es el proceso en el que la recompensa por la minería de bloques de Bitcoin se reduce a la mitad. Esto ocurre aproximadamente cada 4 años y tiene un impacto en la oferta de Bitcoin."
+      }
+    ]
+  }
+  

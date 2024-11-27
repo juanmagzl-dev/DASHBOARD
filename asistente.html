@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Asistente de Inversión en Criptomonedas</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #ffffff;
+            --text-color: #333333;
+            --card-bg: #f8f9fa;
+            --border-color: #dee2e6;
+            --accent-color: #00ff95;
+            --button-color: #50C878;
+            --glow-color: rgba(0, 255, 149, 0.3);
+        }
+
+        .dark-mode {
+            --bg-color: #1a1a1a;
+            --text-color: #ffffff;
+            --card-bg: #2d2d2d;
+            --border-color: #404040;
+        }
+
+        body {
+            font-family: 'Share Tech Mono', monospace;
+            margin: 0;
+            padding: 20px;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            transition: all 0.3s ease;
+            background-image: 
+                radial-gradient(circle at 10% 20%, var(--glow-color) 0%, transparent 20%),
+                radial-gradient(circle at 90% 80%, var(--glow-color) 0%, transparent 20%);
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .assistant-container {
+            background-color: var(--card-bg);
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            border: 1px solid var(--border-color);
+        }
+
+        .chat-area {
+            height: 400px;
+            overflow-y: auto;
+            padding: 20px;
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+
+        .message {
+            margin-bottom: 15px;
+            padding: 10px;
+            border-radius: 8px;
+        }
+
+        .user-message {
+            background-color: var(--accent-color);
+            margin-left: 20%;
+            color: #000;
+        }
+
+        .assistant-message {
+            background-color: var(--card-bg);
+            margin-right: 20%;
+            border: 1px solid var(--border-color);
+        }
+
+        .crypto-data {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .crypto-card {
+            background-color: var(--card-bg);
+            padding: 15px;
+            border-radius: 10px;
+            flex: 1;
+            min-width: 200px;
+            border: 1px solid var(--border-color);
+        }
+
+        .input-area {
+            display: flex;
+            gap: 10px;
+        }
+
+        input[type="text"] {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid var(--border-color);
+            border-radius: 5px;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            font-family: inherit;
+        }
+
+        button {
+            padding: 10px 20px;
+            background-color: var(--button-color);
+            border: none;
+            border-radius: 5px;
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: inherit;
+        }
+
+        button:hover {
+            opacity: 0.9;
+            transform: translateY(-2px);
+        }
+
+        .news-section {
+            margin-top: 30px;
+            padding: 20px;
+            background-color: var(--card-bg);
+            border-radius: 10px;
+            border: 1px solid var(--border-color);
+        }
+
+        .news-item {
+            padding: 15px;
+            margin-bottom: 10px;
+            border-bottom: 1px solid var(--border-color);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="assistant-container">
+            <h1><i class="fas fa-robot"></i> Asistente de Inversión en Criptomonedas</h1>
+            
+            <div class="crypto-data" id="cryptoData">
+                <!-- Datos de criptomonedas en tiempo real -->
+            </div>
+
+            <div class="chat-area" id="chatArea">
+                <div class="message assistant-message">
+                    ¡Hola! Soy tu asistente de inversión en criptomonedas. Puedo ayudarte con:
+                    - Precios actuales de criptomonedas
+                    - Análisis de mercado y recomendaciones
+                    - Últimas noticias del sector
+                    ¿Qué te gustaría saber?
+                </div>
+            </div>
+
+            <div class="input-area">
+                <input type="text" id="userInput" placeholder="Ej: ¿Cuál es el precio de Bitcoin?">
+                <button onclick="sendMessage()">Enviar</button>
+            </div>
+        </div>
+
+        <div class="news-section">
+            <h2>Últimas Noticias</h2>
+            <div id="newsContainer">
+                <!-- Noticias dinámicas -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Configuración de Dialogflow
+        const dialogflowConfig = {
+            projectId: 'tu-proyecto-id',
+            sessionId: Math.random().toString(36).substring(7)
+        };
+
+        // Función para obtener datos de criptomonedas
+        async function getCryptoData() {
+            try {
+                const response = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum,binancecoin&vs_currencies=usd&include_24h_change=true');
+                const data = await response.json();
+                updateCryptoDisplay(data);
+            } catch (error) {
+                console.error('Error al obtener datos de criptomonedas:', error);
+            }
+        }
+
+        // Actualizar visualización de datos de criptomonedas
+        function updateCryptoDisplay(data) {
+            const cryptoData = document.getElementById('cryptoData');
+            cryptoData.innerHTML = Object.entries(data).map(([crypto, info]) => `
+                <div class="crypto-card">
+                    <h3>${crypto.toUpperCase()}</h3>
+                    <p>$${info.usd.toLocaleString()}</p>
+                    <p class="${info.usd_24h_change >= 0 ? 'positive' : 'negative'}">
+                        ${info.usd_24h_change.toFixed(2)}% (24h)
+                    </p>
+                </div>
+            `).join('');
+        }
+
+        // Función para enviar mensaje al asistente
+        async function sendMessage() {
+            const input = document.getElementById('userInput');
+            const message = input.value.trim();
+            
+            if (message) {
+                addMessage('user', message);
+                const response = await sendToDialogflow(message);
+                addMessage('assistant', response);
+                input.value = '';
+            }
+        }
+
+        // Simular respuesta de Dialogflow
+        async function sendToDialogflow(message) {
+            // Aquí iría la integración real con Dialogflow
+            const lowerMessage = message.toLowerCase();
+            
+            if (lowerMessage.includes('precio') && lowerMessage.includes('bitcoin')) {
+                return 'Según los datos más recientes, Bitcoin está cotizando a $XX,XXX. La tendencia de las últimas 24 horas muestra un cambio del X%.';
+            } else if (lowerMessage.includes('ethereum')) {
+                return 'Ethereum es una plataforma blockchain que permite la creación de contratos inteligentes y aplicaciones descentralizadas (DApps). Actualmente cotiza a $X,XXX.';
+            } else if (lowerMessage.includes('invertir')) {
+                return 'Basado en el análisis técnico actual, el mercado muestra señales mixtas. Te recomiendo diversificar tu inversión y no invertir más de lo que puedas permitirte perder.';
+            }
+            
+            return 'Lo siento, no entiendo tu pregunta. ¿Podrías reformularla?';
+        }
+
+        // Función para agregar mensajes al chat
+        function addMessage(type, content) {
+            const chatArea = document.getElementById('chatArea');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${type}-message`;
+            messageDiv.textContent = content;
+            chatArea.appendChild(messageDiv);
+            chatArea.scrollTop = chatArea.scrollHeight;
+        }
+
+        // Obtener noticias de criptomonedas
+        async function getCryptoNews() {
+            try {
+                // Aquí iría la integración con una API de noticias
+                const newsContainer = document.getElementById('newsContainer');
+                const dummyNews = [
+                    'Bitcoin alcanza nuevo máximo histórico',
+                    'Ethereum 2.0 anuncia nueva actualización',
+                    'Reguladores discuten marco legal para criptomonedas'
+                ];
+
+                newsContainer.innerHTML = dummyNews.map(news => `
+                    <div class="news-item">
+                        <p>${news}</p>
+                    </div>
+                `).join('');
+            } catch (error) {
+                console.error('Error al obtener noticias:', error);
+            }
+        }
+
+        // Inicializar datos
+        getCryptoData();
+        getCryptoNews();
+        setInterval(getCryptoData, 60000); // Actualizar cada minuto
+    </script>
+</body>
+</html>

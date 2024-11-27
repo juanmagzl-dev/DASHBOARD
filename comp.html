@@ -1,0 +1,743 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Comparación de Criptomonedas</title>
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/technicalindicators/3.1.0/technicalindicators.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #ffffff;
+            --text-color: #333333;
+            --button-color: #50C878;
+            --glow-color: rgba(80, 200, 120, 0.3);
+            --card-bg: rgba(248, 249, 250, 0.9);
+            --border-color: #dee2e6;
+        }
+
+        .dark-mode {
+            --bg-color: #1a1a1a;
+            --text-color: #ffffff;
+            --card-bg: rgba(45, 45, 45, 0.9);
+            --border-color: #404040;
+        }
+
+        body {
+            font-family: 'Share Tech Mono', monospace;
+            margin: 0;
+            padding: 20px;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            transition: all 0.3s ease;
+            background-image: linear-gradient(45deg, rgba(80, 200, 120, 0.1) 0%, rgba(0, 0, 0, 0) 100%);
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        #chart {
+            width: 90%;
+            height: 500px;
+            margin: 20px auto;
+            background: var(--card-bg);
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            border: 1px solid var(--border-color);
+            padding: 20px;
+        }
+
+        #indicators {
+            width: 90%;
+            height: 200px;
+            margin: 20px auto;
+            background: var(--card-bg);
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            border: 1px solid var(--border-color);
+            padding: 20px;
+        }
+
+        .title {
+            text-align: center;
+            margin: 20px 0;
+            color: var(--text-color);
+            font-size: 1.8em;
+            text-shadow: 0 0 10px var(--glow-color);
+        }
+
+        .mode-toggle {
+            position: fixed;
+            top: 15px;
+            right: 15px;
+            padding: 12px;
+            border-radius: 50%;
+            border: none;
+            cursor: pointer;
+            background-color: var(--button-color);
+            color: white;
+            box-shadow: 0 0 10px var(--glow-color);
+        }
+
+        .demo-button {
+            position: fixed;
+            top: 15px;
+            right: 70px;
+            padding: 12px;
+            border-radius: 50%;
+            border: none;
+            cursor: pointer;
+            background-color: var(--button-color);
+            color: white;
+            box-shadow: 0 0 10px var(--glow-color);
+        }
+
+        .crypto-dropdown {
+            position: relative;
+            display: inline-block;
+            width: 250px;
+            margin: 10px;
+        }
+
+        .crypto-dropdown-btn {
+            width: 100%;
+            padding: 10px;
+            background: var(--bg-color);
+            border: 2px solid var(--button-color);
+            border-radius: 8px;
+            color: var(--text-color);
+            cursor: pointer;
+            font-family: 'Share Tech Mono', monospace;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .crypto-dropdown-content {
+            display: none;
+            position: absolute;
+            width: 100%;
+            max-height: 300px;
+            overflow-y: auto;
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            z-index: 1000;
+            margin-top: 5px;
+        }
+
+        .crypto-option {
+            padding: 10px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            transition: all 0.2s;
+        }
+
+        .crypto-option:hover {
+            background: var(--button-color);
+            color: white;
+        }
+
+        .crypto-option.selected {
+            background: rgba(80, 200, 120, 0.2);
+        }
+
+        .crypto-icon {
+            width: 20px;
+            height: 20px;
+            margin-right: 8px;
+        }
+
+        .timeframe-select, .chart-type-select, .indicator-select {
+            width: 150px;
+            padding: 10px;
+            margin: 10px;
+            border-radius: 8px;
+            border: 2px solid var(--button-color);
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            font-family: 'Share Tech Mono', monospace;
+            cursor: pointer;
+        }
+
+        .controls {
+            text-align: center;
+            margin: 15px 0;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .selected-cryptos {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            justify-content: center;
+            margin: 10px 0;
+            width: 100%;
+        }
+
+        .selected-tag {
+            background: var(--button-color);
+            color: white;
+            padding: 5px 10px;
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 0.9em;
+        }
+
+        .remove-crypto {
+            cursor: pointer;
+            font-size: 12px;
+        }
+
+        @media (max-width: 768px) {
+            body {
+                padding: 10px;
+            }
+            
+            #chart, #indicators {
+                height: 400px;
+                width: 95%;
+            }
+
+            .crypto-dropdown {
+                width: 100%;
+                max-width: 250px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <button class="mode-toggle" onclick="toggleDarkMode()">
+        <i class="fas fa-moon"></i>
+    </button>
+    <button class="demo-button" onclick="window.location.href='demo.html'" title="Probar Demo">
+        <i class="fas fa-play"></i>
+    </button>
+    <h1 class="title">Comparación de Múltiples Pares de Criptomonedas</h1>
+    
+    <div class="controls">
+        <div class="crypto-dropdown">
+            <button class="crypto-dropdown-btn" onclick="toggleDropdown()">
+                Seleccionar Criptomonedas
+                <i class="fas fa-chevron-down"></i>
+            </button>
+            <div id="cryptoDropdown" class="crypto-dropdown-content">
+                <div class="crypto-option" data-value="BTCUSDT" onclick="toggleCrypto(this)">
+                    <i class="crypto-icon fab fa-bitcoin"></i>Bitcoin
+                </div>
+                <div class="crypto-option" data-value="ETHUSDT" onclick="toggleCrypto(this)">
+                    <i class="crypto-icon fab fa-ethereum"></i>Ethereum
+                </div>
+                <div class="crypto-option" data-value="XRPUSDT" onclick="toggleCrypto(this)">
+                    <i class="crypto-icon fas fa-circle"></i>Ripple
+                </div>
+                <div class="crypto-option" data-value="BNBUSDT" onclick="toggleCrypto(this)">
+                    <i class="crypto-icon fas fa-coins"></i>Binance Coin
+                </div>
+                <div class="crypto-option" data-value="ADAUSDT" onclick="toggleCrypto(this)">
+                    <i class="crypto-icon fas fa-circle"></i>Cardano
+                </div>
+                <div class="crypto-option" data-value="SOLUSDT" onclick="toggleCrypto(this)">
+                    <i class="crypto-icon fas fa-sun"></i>Solana
+                </div>
+                <div class="crypto-option" data-value="DOTUSDT" onclick="toggleCrypto(this)">
+                    <i class="crypto-icon fas fa-circle"></i>Polkadot
+                </div>
+                <div class="crypto-option" data-value="DOGEUSDT" onclick="toggleCrypto(this)">
+                    <i class="crypto-icon fas fa-dog"></i>Dogecoin
+                </div>
+                <div class="crypto-option" data-value="MATICUSDT" onclick="toggleCrypto(this)">
+                    <i class="crypto-icon fas fa-circle"></i>Polygon
+                </div>
+                <div class="crypto-option" data-value="AVAXUSDT" onclick="toggleCrypto(this)">
+                    <i class="crypto-icon fas fa-mountain"></i>Avalanche
+                </div>
+            </div>
+        </div>
+        <div class="selected-cryptos" id="selectedCryptos"></div>
+        <select id="timeframeSelect" class="timeframe-select">
+            <option value="4h">4 Horas</option>
+            <option value="1d">Diario</option>
+            <option value="1w">Semanal</option>
+        </select>
+        <select id="chartTypeSelect" class="chart-type-select">
+            <option value="line">Líneas</option>
+            <option value="candlestick">Velas</option>
+        </select>
+        <select id="indicatorSelect" class="indicator-select">
+            <option value="none">Sin Indicador</option>
+            <option value="rsi">RSI</option>
+            <option value="macd">MACD</option>
+            <option value="bb">Bandas de Bollinger</option>
+        </select>
+    </div>
+    
+    <div id="chart"></div>
+    <div id="indicators"></div>
+
+    <script>
+        // Cargar configuración guardada o usar valores por defecto
+        let selectedCryptos = new Set(
+            JSON.parse(localStorage.getItem('selectedCryptos')) || ['BTCUSDT', 'ETHUSDT']
+        );
+
+        // Cargar modo oscuro
+        if(localStorage.getItem('darkMode') === 'true') {
+            document.body.classList.add('dark-mode');
+        }
+
+        // Cargar indicador seleccionado
+        const savedIndicator = localStorage.getItem('selectedIndicator');
+        if(savedIndicator) {
+            document.getElementById('indicatorSelect').value = savedIndicator;
+        }
+
+        // Cargar timeframe seleccionado
+        const savedTimeframe = localStorage.getItem('selectedTimeframe');
+        if(savedTimeframe) {
+            document.getElementById('timeframeSelect').value = savedTimeframe;
+        }
+
+        // Cargar tipo de gráfico seleccionado
+        const savedChartType = localStorage.getItem('selectedChartType');
+        if(savedChartType) {
+            document.getElementById('chartTypeSelect').value = savedChartType;
+        }
+
+        function calculateRSI(closePrices, period = 14) {
+            const changes = closePrices.slice(1).map((price, i) => price - closePrices[i]);
+            const gains = changes.map(change => change > 0 ? change : 0);
+            const losses = changes.map(change => change < 0 ? -change : 0);
+            
+            let avgGain = gains.slice(0, period).reduce((a, b) => a + b) / period;
+            let avgLoss = losses.slice(0, period).reduce((a, b) => a + b) / period;
+            
+            const rsi = [100 - (100 / (1 + avgGain / avgLoss))];
+            
+            for (let i = period; i < changes.length; i++) {
+                avgGain = (avgGain * (period - 1) + gains[i]) / period;
+                avgLoss = (avgLoss * (period - 1) + losses[i]) / period;
+                rsi.push(100 - (100 / (1 + avgGain / avgLoss)));
+            }
+            
+            return rsi;
+        }
+
+        function calculateMACD(closePrices, fastPeriod = 12, slowPeriod = 26, signalPeriod = 9) {
+            let fastEMA = [];
+            let slowEMA = [];
+            let k_fast = 2 / (fastPeriod + 1);
+            let k_slow = 2 / (slowPeriod + 1);
+            
+            let sum = 0;
+            for(let i = 0; i < fastPeriod; i++) {
+                sum += closePrices[i];
+            }
+            fastEMA[fastPeriod-1] = sum/fastPeriod;
+            
+            sum = 0;
+            for(let i = 0; i < slowPeriod; i++) {
+                sum += closePrices[i];
+            }
+            slowEMA[slowPeriod-1] = sum/slowPeriod;
+            
+            for(let i = fastPeriod; i < closePrices.length; i++) {
+                fastEMA[i] = (closePrices[i] - fastEMA[i-1]) * k_fast + fastEMA[i-1];
+            }
+            
+            for(let i = slowPeriod; i < closePrices.length; i++) {
+                slowEMA[i] = (closePrices[i] - slowEMA[i-1]) * k_slow + slowEMA[i-1];
+            }
+            
+            let macdLine = [];
+            for(let i = slowPeriod-1; i < closePrices.length; i++) {
+                macdLine[i] = fastEMA[i] - slowEMA[i];
+            }
+            
+            let signalLine = [];
+            let k_signal = 2 / (signalPeriod + 1);
+            
+            sum = 0;
+            for(let i = slowPeriod-1; i < slowPeriod-1+signalPeriod; i++) {
+                sum += macdLine[i];
+            }
+            signalLine[slowPeriod-1+signalPeriod-1] = sum/signalPeriod;
+            
+            for(let i = slowPeriod-1+signalPeriod; i < closePrices.length; i++) {
+                signalLine[i] = (macdLine[i] - signalLine[i-1]) * k_signal + signalLine[i-1];
+            }
+            
+            let histogram = macdLine.map((macd, i) => macd - (signalLine[i] || 0));
+            
+            return {
+                macdLine: macdLine.slice(slowPeriod-1),
+                signalLine: signalLine.slice(slowPeriod-1),
+                histogram: histogram.slice(slowPeriod-1)
+            };
+        }
+
+        function calculateBollingerBands(closePrices, period = 20, stdDev = 2) {
+            let middleBand = [];
+            let upperBand = [];
+            let lowerBand = [];
+            
+            for(let i = period-1; i < closePrices.length; i++) {
+                let sum = 0;
+                let sumSquares = 0;
+                
+                let slice = closePrices.slice(i-period+1, i+1);
+                
+                for(let price of slice) {
+                    sum += price;
+                }
+                let mean = sum/period;
+                middleBand.push(mean);
+                
+                for(let price of slice) {
+                    sumSquares += Math.pow(price - mean, 2);
+                }
+                let standardDeviation = Math.sqrt(sumSquares/period);
+                
+                upperBand.push(mean + (standardDeviation * stdDev));
+                lowerBand.push(mean - (standardDeviation * stdDev));
+            }
+            
+            return {
+                middleBand,
+                upperBand,
+                lowerBand
+            };
+        }
+
+        function toggleDropdown() {
+            const dropdown = document.getElementById('cryptoDropdown');
+            dropdown.style.display = dropdown.style.display === 'block' ? 'none' : 'block';
+        }
+
+        function toggleCrypto(element) {
+            const value = element.dataset.value;
+            if (selectedCryptos.has(value)) {
+                selectedCryptos.delete(value);
+                element.classList.remove('selected');
+            } else {
+                if (selectedCryptos.size < 5) {
+                    selectedCryptos.add(value);
+                    element.classList.add('selected');
+                } else {
+                    alert('Máximo 5 criptomonedas permitidas');
+                    return;
+                }
+            }
+            // Guardar en localStorage
+            localStorage.setItem('selectedCryptos', JSON.stringify(Array.from(selectedCryptos)));
+            updateSelectedTags();
+            initializeChart();
+        }
+
+        function updateSelectedTags() {
+            const container = document.getElementById('selectedCryptos');
+            container.innerHTML = '';
+            selectedCryptos.forEach(crypto => {
+                const tag = document.createElement('div');
+                tag.className = 'selected-tag';
+                tag.innerHTML = `
+                    ${crypto.replace('USDT', '')}
+                    <span class="remove-crypto" onclick="removeCrypto('${crypto}')">✕</span>
+                `;
+                container.appendChild(tag);
+            });
+
+            // Marcar las opciones seleccionadas en el dropdown
+            document.querySelectorAll('.crypto-option').forEach(option => {
+                if(selectedCryptos.has(option.dataset.value)) {
+                    option.classList.add('selected');
+                } else {
+                    option.classList.remove('selected');
+                }
+            });
+        }
+
+        function removeCrypto(crypto) {
+            selectedCryptos.delete(crypto);
+            const option = document.querySelector(`.crypto-option[data-value="${crypto}"]`);
+            if (option) option.classList.remove('selected');
+            // Guardar en localStorage
+            localStorage.setItem('selectedCryptos', JSON.stringify(Array.from(selectedCryptos)));
+            updateSelectedTags();
+            initializeChart();
+        }
+
+        function toggleDarkMode() {
+            document.body.classList.toggle('dark-mode');
+            // Guardar en localStorage
+            localStorage.setItem('darkMode', document.body.classList.contains('dark-mode'));
+            initializeChart(); 
+        }
+
+        async function fetchKlines(symbol, interval = '1h', limit = 100) {
+            const response = await fetch(`https://api.binance.com/api/v3/klines?symbol=${symbol}&interval=${interval}&limit=${limit}`);
+            const data = await response.json();
+            return data.map(d => ({
+                time: new Date(d[0]),
+                open: parseFloat(d[1]),
+                high: parseFloat(d[2]),
+                low: parseFloat(d[3]),
+                close: parseFloat(d[4])
+            }));
+        }
+
+        async function initializeChart() {
+            const pairs = Array.from(selectedCryptos);
+            const timeframe = document.getElementById('timeframeSelect').value;
+            const chartType = document.getElementById('chartTypeSelect').value;
+            const selectedIndicator = document.getElementById('indicatorSelect').value;
+
+            // Guardar selecciones en localStorage
+            localStorage.setItem('selectedTimeframe', timeframe);
+            localStorage.setItem('selectedChartType', chartType);
+            localStorage.setItem('selectedIndicator', selectedIndicator);
+
+            const limits = {
+                '4h': 60,
+                '1d': 24,
+                '1w': 168
+            };
+
+            const colors = [
+                '#F7931A', '#627EEA', '#23292F', '#F3BA2F', '#0033AD',
+                '#00FFA3', '#E6007A', '#C2A633', '#8247E5', '#E84142'
+            ];
+            
+            try {
+                const traces = await Promise.all(pairs.map(async (pair, index) => {
+                    const data = await fetchKlines(pair, timeframe, limits[timeframe]);
+                    const closePrices = data.map(d => d.close);
+                    
+                    let traces = [];
+                    
+                    if (chartType === 'line') {
+                        traces.push({
+                            x: data.map(d => d.time),
+                            y: closePrices,
+                            type: 'scatter',
+                            mode: 'lines',
+                            name: pair.replace('USDT', ''),
+                            line: {
+                                color: colors[index],
+                                width: 3,
+                                shape: 'spline'
+                            },
+                            hovertemplate: '%{y:$.2f} USDT<br>%{x}<extra></extra>'
+                        });
+                    } else {
+                        traces.push({
+                            x: data.map(d => d.time),
+                            open: data.map(d => d.open),
+                            high: data.map(d => d.high),
+                            low: data.map(d => d.low),
+                            close: closePrices,
+                            type: 'candlestick',
+                            name: pair.replace('USDT', ''),
+                            increasing: {line: {color: '#50C878'}},
+                            decreasing: {line: {color: '#FF6B6B'}},
+                            hovertemplate: 
+                                'Apertura: %{open:$.2f}<br>' +
+                                'Máximo: %{high:$.2f}<br>' +
+                                'Mínimo: %{low:$.2f}<br>' +
+                                'Cierre: %{close:$.2f}<br>' +
+                                '%{x}<extra></extra>'
+                        });
+                    }
+
+                    if (selectedIndicator === 'bb') {
+                        const bb = calculateBollingerBands(closePrices);
+                        const times = data.map(d => d.time).slice(19);
+                        
+                        traces.push({
+                            x: times,
+                            y: bb.upperBand,
+                            type: 'scatter',
+                            mode: 'lines',
+                            name: `${pair.replace('USDT', '')} BB Superior`,
+                            line: {dash: 'dot', color: colors[index]},
+                            opacity: 0.5
+                        }, {
+                            x: times,
+                            y: bb.middleBand,
+                            type: 'scatter',
+                            mode: 'lines',
+                            name: `${pair.replace('USDT', '')} BB Media`,
+                            line: {dash: 'dot', color: colors[index]},
+                            opacity: 0.5
+                        }, {
+                            x: times,
+                            y: bb.lowerBand,
+                            type: 'scatter',
+                            mode: 'lines',
+                            name: `${pair.replace('USDT', '')} BB Inferior`,
+                            line: {dash: 'dot', color: colors[index]},
+                            opacity: 0.5,
+                            fill: 'tonexty'
+                        });
+                    }
+
+                    return traces;
+                }));
+
+                const flatTraces = traces.flat();
+
+                const layout = {
+                    title: {
+                        text: 'Evolución de Precios en Tiempo Real',
+                        font: {
+                            size: 20
+                        }
+                    },
+                    xaxis: {
+                        title: 'Tiempo',
+                        gridcolor: 'rgba(128,128,128,0.2)',
+                        zerolinecolor: 'rgba(128,128,128,0.2)',
+                        tickformat: '%H:%M\n%d/%m'
+                    },
+                    yaxis: {
+                        title: 'Precio (USDT)',
+                        type: 'log',
+                        gridcolor: 'rgba(128,128,128,0.2)',
+                        zerolinecolor: 'rgba(128,128,128,0.2)',
+                        tickprefix: '$'
+                    },
+                    paper_bgcolor: 'rgba(0,0,0,0)',
+                    plot_bgcolor: 'rgba(0,0,0,0)',
+                    font: {
+                        color: getComputedStyle(document.body).getPropertyValue('--text-color'),
+                        family: 'Share Tech Mono'
+                    },
+                    showlegend: true,
+                    legend: {
+                        x: 0,
+                        y: 1,
+                        bgcolor: 'rgba(0,0,0,0)',
+                        bordercolor: 'rgba(0,0,0,0)'
+                    },
+                    margin: {
+                        l: 60,
+                        r: 30,
+                        t: 50,
+                        b: 50
+                    },
+                    hovermode: 'x unified',
+                    hoverlabel: {
+                        bgcolor: 'rgba(255,255,255,0.8)',
+                        font: {color: '#333'}
+                    }
+                };
+
+                const config = {
+                    responsive: true,
+                    displayModeBar: true,
+                    modeBarButtonsToRemove: ['lasso2d', 'select2d'],
+                    displaylogo: false
+                };
+
+                Plotly.newPlot('chart', flatTraces, layout, config);
+
+                if (selectedIndicator === 'rsi' || selectedIndicator === 'macd') {
+                    const indicatorTraces = await Promise.all(pairs.map(async (pair, index) => {
+                        const data = await fetchKlines(pair, timeframe, limits[timeframe]);
+                        const closePrices = data.map(d => d.close);
+                        
+                        if (selectedIndicator === 'rsi') {
+                            const rsi = calculateRSI(closePrices);
+                            return {
+                                x: data.map(d => d.time).slice(14),
+                                y: rsi,
+                                type: 'scatter',
+                                mode: 'lines',
+                                name: `${pair.replace('USDT', '')} RSI`,
+                                line: {color: colors[index]}
+                            };
+                        } else {
+                            const macd = calculateMACD(closePrices);
+                            const times = data.map(d => d.time).slice(25);
+                            
+                            return [{
+                                x: times,
+                                y: macd.macdLine,
+                                type: 'scatter',
+                                mode: 'lines',
+                                name: `${pair.replace('USDT', '')} MACD`,
+                                line: {color: colors[index]}
+                            }, {
+                                x: times,
+                                y: macd.signalLine,
+                                type: 'scatter',
+                                mode: 'lines',
+                                name: `${pair.replace('USDT', '')} Señal`,
+                                line: {color: colors[index], dash: 'dot'}
+                            }, {
+                                x: times,
+                                y: macd.histogram,
+                                type: 'bar',
+                                name: `${pair.replace('USDT', '')} Histograma`,
+                                marker: {
+                                    color: macd.histogram.map(h => h >= 0 ? '#50C878' : '#FF6B6B')
+                                }
+                            }];
+                        }
+                    }));
+
+                    const indicatorLayout = {
+                        ...layout,
+                        height: 200,
+                        yaxis: {
+                            title: selectedIndicator.toUpperCase(),
+                            gridcolor: 'rgba(128,128,128,0.2)',
+                            zerolinecolor: 'rgba(128,128,128,0.2)'
+                        }
+                    };
+
+                    if (selectedIndicator === 'macd') {
+                        indicatorLayout.yaxis.title = 'MACD';
+                        indicatorLayout.barmode = 'relative';
+                    }
+
+                    Plotly.newPlot('indicators', indicatorTraces.flat(), indicatorLayout, config);
+                } else {
+                    Plotly.newPlot('indicators', [], {...layout, height: 200}, config);
+                }
+
+            } catch (error) {
+                console.error('Error al cargar los datos:', error);
+            }
+        }
+
+        // Inicializar el gráfico y las etiquetas al cargar la página
+        initializeChart();
+        updateSelectedTags();
+
+        window.onclick = function(event) {
+            if (!event.target.matches('.crypto-dropdown-btn')) {
+                const dropdown = document.getElementById('cryptoDropdown');
+                if (dropdown.style.display === 'block') {
+                    dropdown.style.display = 'none';
+                }
+            }
+        }
+
+        document.getElementById('timeframeSelect').addEventListener('change', initializeChart);
+        document.getElementById('chartTypeSelect').addEventListener('change', initializeChart);
+        document.getElementById('indicatorSelect').addEventListener('change', initializeChart);
+
+        setInterval(initializeChart, 300000);
+    </script>
+</body>
+</html>

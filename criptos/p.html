@@ -285,11 +285,26 @@
             background-color: rgba(128, 128, 128, 0.2);
             color: #808080;
         }
+
+        .compare-link {
+            position: fixed;
+            top: 15px;
+            right: 125px;
+            padding: 12px;
+            border-radius: 50%;
+            border: none;
+            cursor: pointer;
+            background-color: var(--button-color);
+            color: white;
+            box-shadow: 0 0 10px var(--glow-color);
+            text-decoration: none;
+        }
     </style>
 </head>
 <body>
     <button class="mode-toggle" onclick="toggleDarkMode()"><i class="fas fa-moon"></i></button>
     <button class="refresh-btn" onclick="location.reload()"><i class="fas fa-sync-alt"></i></button>
+    <a href="comp.html" class="compare-link" title="Comparar activos" target="_blank"><i class="fas fa-balance-scale"></i></a>
 
     <h1 class="page-title">Información de Criptomonedas</h1>
 

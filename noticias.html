@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Noticias de Criptomonedas</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #ffffff;
+            --text-color: #333333;
+            --card-bg: #f8f9fa;
+            --border-color: #dee2e6;
+            --accent-color: #00ff95;
+            --button-color: #50C878;
+            --meta-color: #666;
+            --glow-color: rgba(0, 255, 149, 0.15);
+            --gradient-1: rgba(0, 255, 149, 0.1);
+            --gradient-2: rgba(80, 200, 120, 0.1);
+            --gradient-3: rgba(0, 200, 255, 0.1);
+        }
+
+        .dark-mode {
+            --bg-color: #1a1a1a;
+            --text-color: #ffffff;
+            --card-bg: #2d2d2d;
+            --border-color: #404040;
+            --meta-color: #aaa;
+            --gradient-1: rgba(0, 255, 149, 0.05);
+            --gradient-2: rgba(80, 200, 120, 0.05);
+            --gradient-3: rgba(0, 200, 255, 0.05);
+        }
+
+        body {
+            font-family: 'Share Tech Mono', monospace;
+            margin: 0;
+            padding: 20px;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            transition: all 0.3s ease;
+            background: 
+                linear-gradient(120deg, var(--gradient-1) 0%, transparent 40%),
+                linear-gradient(240deg, var(--gradient-2) 0%, transparent 40%),
+                linear-gradient(360deg, var(--gradient-3) 0%, transparent 40%),
+                var(--bg-color);
+            background-attachment: fixed;
+            position: relative;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            background: 
+                radial-gradient(circle at 20% 20%, var(--glow-color) 0%, transparent 25%),
+                radial-gradient(circle at 80% 80%, var(--glow-color) 0%, transparent 25%),
+                radial-gradient(circle at 50% 50%, var(--glow-color) 0%, transparent 35%);
+            z-index: -1;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 1;
+        }
+
+        .news-card {
+            background-color: var(--card-bg);
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease;
+            backdrop-filter: blur(5px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .news-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 16px rgba(0, 255, 149, 0.15);
+        }
+
+        .news-title {
+            color: var(--accent-color);
+            margin-bottom: 10px;
+        }
+
+        .news-title a {
+            color: inherit;
+            text-decoration: none;
+        }
+
+        .news-meta {
+            font-size: 0.9em;
+            color: var(--meta-color);
+            margin-bottom: 10px;
+        }
+
+        .news-content {
+            margin: 15px 0;
+            line-height: 1.6;
+        }
+
+        .news-preview {
+            position: relative;
+            max-height: 100px;
+            overflow: hidden;
+        }
+
+        .news-preview::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 50px;
+            background: linear-gradient(transparent, var(--card-bg));
+        }
+
+        .news-image {
+            max-width: 200px;
+            max-height: 150px;
+            object-fit: cover;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+
+        .read-more {
+            color: var(--accent-color);
+            text-decoration: none;
+            font-weight: bold;
+            display: inline-block;
+            margin-top: 10px;
+        }
+
+        .load-more {
+            background-color: var(--button-color);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            display: block;
+            margin: 20px auto;
+            backdrop-filter: blur(5px);
+        }
+
+        .error-message {
+            color: #ff4444;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .theme-toggle {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background-color: var(--button-color);
+            color: white;
+            border: none;
+            padding: 12px;
+            border-radius: 50%;
+            cursor: pointer;
+            box-shadow: 0 2px 10px rgba(0,255,149,0.3);
+            backdrop-filter: blur(5px);
+        }
+
+        .refresh-button {
+            position: fixed;
+            top: 20px;
+            right: 80px;
+            background-color: var(--button-color);
+            color: white;
+            border: none;
+            padding: 12px;
+            border-radius: 50%;
+            cursor: pointer;
+            box-shadow: 0 2px 10px rgba(0,255,149,0.3);
+            backdrop-filter: blur(5px);
+        }
+
+        .scroll-top {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background-color: var(--button-color);
+            color: white;
+            border: none;
+            padding: 12px;
+            border-radius: 50%;
+            cursor: pointer;
+            box-shadow: 0 2px 10px rgba(0,255,149,0.3);
+            display: none;
+            z-index: 1000;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(5px);
+        }
+
+        .scroll-top:hover {
+            transform: translateY(-3px);
+        }
+    </style>
+</head>
+<body>
+    <button class="theme-toggle" onclick="toggleTheme()">
+        <i class="fas fa-moon"></i>
+    </button>
+    <button class="refresh-button" onclick="refreshNews()">
+        <i class="fas fa-sync-alt"></i>
+    </button>
+    <button class="scroll-top" onclick="scrollToTop()">
+        <i class="fas fa-arrow-up"></i>
+    </button>
+
+    <div class="container">
+        <h1><i class="fas fa-newspaper"></i> Noticias de Criptomonedas</h1>
+        <div id="news-container"></div>
+        <button id="load-more" class="load-more">Cargar más noticias</button>
+    </div>
+
+    <script>
+        let after = '';
+        const newsContainer = document.getElementById('news-container');
+        const loadMoreButton = document.getElementById('load-more');
+        const themeToggle = document.querySelector('.theme-toggle i');
+        const scrollTopButton = document.querySelector('.scroll-top');
+
+        // Mostrar/ocultar botón de scroll según la posición
+        window.onscroll = function() {
+            if (document.body.scrollTop > 20 || document.documentElement.scrollTop > 20) {
+                scrollTopButton.style.display = "block";
+            } else {
+                scrollTopButton.style.display = "none";
+            }
+        };
+
+        // Función para volver al inicio
+        function scrollToTop() {
+            window.scrollTo({
+                top: 0,
+                behavior: 'smooth'
+            });
+        }
+
+        // Cargar el tema guardado al iniciar
+        document.addEventListener('DOMContentLoaded', () => {
+            const savedTheme = localStorage.getItem('theme');
+            if (savedTheme === 'dark') {
+                document.body.classList.add('dark-mode');
+                themeToggle.classList.remove('fa-moon');
+                themeToggle.classList.add('fa-sun');
+            }
+        });
+
+        async function fetchNews() {
+            try {
+                const url = `https://www.reddit.com/r/CryptoCurrency/new.json?limit=10&t=day${after ? '&after=' + after : ''}`;
+                const response = await fetch(url);
+                
+                if (!response.ok) {
+                    throw new Error('Error al obtener las noticias');
+                }
+
+                const data = await response.json();
+                after = data.data.after;
+                
+                return data.data.children;
+            } catch (error) {
+                console.error('Error:', error);
+                newsContainer.innerHTML += `
+                    <div class="error-message">
+                        Error al cargar las noticias. Por favor, intente más tarde.
+                    </div>
+                `;
+                loadMoreButton.style.display = 'none';
+                return [];
+            }
+        }
+
+        function formatDate(timestamp) {
+            const date = new Date(timestamp * 1000);
+            return date.toLocaleDateString('es-ES', {
+                day: 'numeric',
+                month: 'long',
+                year: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+        }
+
+        function displayNews(posts) {
+            posts.forEach(post => {
+                const newsCard = document.createElement('div');
+                newsCard.className = 'news-card';
+                
+                // Obtener la imagen del post si existe
+                let imageHtml = '';
+                if (post.data.thumbnail && post.data.thumbnail !== 'self' && post.data.thumbnail !== 'default') {
+                    imageHtml = `<img src="${post.data.thumbnail}" class="news-image" alt="Thumbnail">`;
+                }
+
+                newsCard.innerHTML = `
+                    <h2 class="news-title">
+                        <a href="https://reddit.com${post.data.permalink}" target="_blank">
+                            ${post.data.title}
+                        </a>
+                    </h2>
+                    <div class="news-meta">
+                        <span><i class="fas fa-user"></i> ${post.data.author}</span>
+                        <span><i class="fas fa-clock"></i> ${formatDate(post.data.created_utc)}</span>
+                        <span><i class="fas fa-comments"></i> ${post.data.num_comments} comentarios</span>
+                    </div>
+                    <div class="news-content">
+                        ${imageHtml}
+                        <div class="news-preview">
+                            ${post.data.selftext || 'No hay contenido adicional disponible'}
+                        </div>
+                        <a href="https://reddit.com${post.data.permalink}" target="_blank" class="read-more">
+                            Leer más <i class="fas fa-arrow-right"></i>
+                        </a>
+                    </div>
+                `;
+                newsContainer.appendChild(newsCard);
+            });
+        }
+
+        async function loadNews() {
+            const posts = await fetchNews();
+            if (posts.length > 0) {
+                displayNews(posts);
+            }
+            loadMoreButton.disabled = !after;
+        }
+
+        function refreshNews() {
+            after = '';
+            newsContainer.innerHTML = '';
+            loadNews();
+        }
+
+        loadMoreButton.addEventListener('click', loadNews);
+
+        // Cargar noticias iniciales
+        loadNews();
+
+        // Función para alternar el modo oscuro
+        function toggleTheme() {
+            document.body.classList.toggle('dark-mode');
+            themeToggle.classList.toggle('fa-moon');
+            themeToggle.classList.toggle('fa-sun');
+            
+            // Guardar el tema en localStorage
+            const isDarkMode = document.body.classList.contains('dark-mode');
+            localStorage.setItem('theme', isDarkMode ? 'dark' : 'light');
+        }
+    </script>
+</body>
+</html>
