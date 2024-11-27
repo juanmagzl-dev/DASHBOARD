@@ -183,6 +183,30 @@
             gap: 10px;
             margin-left: auto;
         }
+
+        /* Estilos para el widget de gráficos */
+        .graficos-widget {
+            display: block;
+            text-decoration: none;
+            padding: 15px;
+            background-color: var(--card-bg);
+            border-radius: 10px;
+            margin-top: 15px;
+            text-align: center;
+            color: var(--text-color);
+            border: 2px solid var(--button-color);
+            transition: all 0.3s ease;
+        }
+
+        .graficos-widget:hover {
+            background-color: var(--button-color);
+            color: white;
+            transform: translateY(-2px);
+        }
+
+        .graficos-widget i {
+            margin-right: 8px;
+        }
     </style>
 </head>
 <body>
@@ -213,6 +237,10 @@
                 <p>Ganancias/Pérdidas: <span id="profitLoss">€0.00</span></p>
                 <p>Total Comisiones: <span id="totalFees">€0.00</span></p>
             </div>
+            <a href="graficos.html" class="graficos-widget" target="_blank">
+                <i class="fas fa-chart-line"></i>
+                Ver Gráficos De Activos
+            </a>
         </div>
 
         <div class="charts-container">
@@ -290,7 +318,7 @@
             // Preparar los datos para la tabla
             const headers = [['Fecha', 'Tipo', 'Símbolo', 'Cantidad', 'Precio', 'Comisión', 'Total']];
             const data = filteredTransactions.map(t => [
-                new Date(t.date).toLocaleDateString(),
+                new Date(t.date).toLocaleString(),
                 t.type === 'stock' ? 'Acción' : 'Criptomoneda',
                 t.symbol,
                 t.quantity.toString(),
@@ -324,7 +352,7 @@
 
         function exportToExcel() {
             const data = filteredTransactions.map(t => ({
-                Fecha: new Date(t.date).toLocaleDateString(),
+                Fecha: new Date(t.date).toLocaleString(),
                 Tipo: t.type,
                 Símbolo: t.symbol,
                 Cantidad: t.quantity,
@@ -467,7 +495,7 @@
             filteredTransactions.forEach((t, index) => {
                 const row = tbody.insertRow();
                 row.innerHTML = `
-                    <td>${new Date(t.date).toLocaleDateString()}</td>
+                    <td>${new Date(t.date).toLocaleString()}</td>
                     <td>${t.type === 'stock' ? 'Acción' : 'Criptomoneda'}</td>
                     <td>${t.symbol}</td>
                     <td>${t.quantity}</td>
@@ -488,7 +516,7 @@
             row.classList.add('edit-mode');
             
             row.innerHTML = `
-                <td><input type="date" value="${transaction.date.split('T')[0]}"></td>
+                <td><input type="datetime-local" value="${transaction.date.split('.')[0]}"></td>
                 <td>
                     <select>
                         <option value="stock" ${transaction.type === 'stock' ? 'selected' : ''}>Acción</option>
