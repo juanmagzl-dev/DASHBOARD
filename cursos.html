@@ -15,6 +15,9 @@
             --accent-color: #00ff95;
             --button-color: #50C878;
             --glow-color: rgba(0, 255, 149, 0.3);
+            --premium-color: #ffd700;
+            --enterprise-color: #ff4d4d;
+            --free-color: #4CAF50;
         }
 
         .dark-mode {
@@ -171,6 +174,253 @@
             height: 100%;
             border-radius: 10px;
         }
+
+        /* Estilos para el widget de suscripción */
+        .subscription-widget {
+            background-color: var(--card-bg);
+            border-radius: 15px;
+            padding: 30px;
+            margin-top: 40px;
+            text-align: center;
+            border: 2px solid var(--accent-color);
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
+        }
+
+        .subscription-plan {
+            padding: 20px;
+            border-radius: 10px;
+            background-color: var(--bg-color);
+            transition: transform 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .subscription-plan:hover {
+            transform: translateY(-10px);
+        }
+
+        /* Estilos específicos para cada plan */
+        .subscription-plan.free {
+            border: 2px solid var(--free-color);
+        }
+
+        .subscription-plan.basic {
+            border: 2px solid var(--accent-color);
+        }
+
+        .subscription-plan.premium {
+            border: 2px solid var(--premium-color);
+            transform: scale(1.05);
+        }
+
+        .subscription-plan.premium::before {
+            content: "MÁS POPULAR";
+            position: absolute;
+            top: 10px;
+            right: -35px;
+            background: var(--premium-color);
+            color: #000;
+            padding: 5px 40px;
+            transform: rotate(45deg);
+            font-size: 0.8em;
+            font-weight: bold;
+        }
+
+        .subscription-plan.enterprise {
+            border: 2px solid var(--enterprise-color);
+        }
+
+        .subscription-title {
+            font-size: 1.8em;
+            margin-bottom: 20px;
+        }
+
+        .free .subscription-title {
+            color: var(--free-color);
+        }
+
+        .basic .subscription-title {
+            color: var(--accent-color);
+        }
+
+        .premium .subscription-title {
+            color: var(--premium-color);
+        }
+
+        .enterprise .subscription-title {
+            color: var(--enterprise-color);
+        }
+
+        .subscription-price {
+            font-size: 3em;
+            font-weight: bold;
+            margin: 20px 0;
+            color: var(--text-color);
+        }
+
+        .subscription-period {
+            font-size: 0.8em;
+            opacity: 0.8;
+        }
+
+        .subscription-features {
+            list-style: none;
+            padding: 0;
+            margin-bottom: 30px;
+            text-align: left;
+        }
+
+        .subscription-features li {
+            margin: 15px 0;
+            padding-left: 25px;
+            position: relative;
+        }
+
+        .subscription-features li::before {
+            content: "✓";
+            position: absolute;
+            left: 0;
+            color: var(--accent-color);
+        }
+
+        .free .subscription-features li::before {
+            color: var(--free-color);
+        }
+
+        .premium .subscription-features li::before {
+            color: var(--premium-color);
+        }
+
+        .enterprise .subscription-features li::before {
+            color: var(--enterprise-color);
+        }
+
+        .subscribe-btn {
+            background-color: var(--button-color);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 25px;
+            font-size: 1.2em;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            width: 100%;
+        }
+
+        .free .subscribe-btn {
+            background-color: var(--free-color);
+        }
+
+        .premium .subscribe-btn {
+            background-color: var(--premium-color);
+            color: #000;
+        }
+
+        .enterprise .subscribe-btn {
+            background-color: var(--enterprise-color);
+        }
+
+        .subscribe-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 15px rgba(0,255,149,0.3);
+        }
+
+        /* Modal de pago */
+        .payment-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.7);
+            z-index: 1000;
+        }
+
+        .payment-content {
+            position: relative;
+            background-color: var(--card-bg);
+            margin: 5% auto;
+            padding: 30px;
+            width: 90%;
+            max-width: 500px;
+            border-radius: 15px;
+            box-shadow: 0 0 20px rgba(0,0,0,0.2);
+        }
+
+        .close-modal {
+            position: absolute;
+            right: 20px;
+            top: 20px;
+            font-size: 1.5em;
+            cursor: pointer;
+            color: var(--text-color);
+        }
+
+        .payment-methods {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .payment-method {
+            padding: 20px;
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .payment-method:hover {
+            border-color: var(--accent-color);
+            transform: translateY(-2px);
+        }
+
+        .payment-method i {
+            margin-right: 10px;
+            color: var(--accent-color);
+        }
+
+        .payment-form {
+            display: none;
+            margin-top: 20px;
+        }
+
+        .payment-form.active {
+            display: block;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid var(--border-color);
+            border-radius: 5px;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+        }
+
+        .submit-payment {
+            background-color: var(--button-color);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 5px;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 20px;
+        }
     </style>
 </head>
 <body>
@@ -185,6 +435,7 @@
         </div>
 
         <div class="course-grid">
+            <!-- [Previous course cards remain unchanged] -->
             <div class="course-card">
                 <div class="course-icon">
                     <i class="fas fa-blockchain"></i>
@@ -324,9 +575,149 @@
                 <iframe src="https://www.youtube.com/embed/1YyAzVmP9xQ" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
             </div>
         </div>
+
+        <!-- Widget de Suscripción -->
+        <div class="subscription-widget">
+            <!-- Plan Gratuito -->
+            <div class="subscription-plan free">
+                <h2 class="subscription-title">Plan Gratuito</h2>
+                <div class="subscription-price">
+                    €0
+                    <span class="subscription-period">/mes</span>
+                </div>
+                <ul class="subscription-features">
+                    <li>Acceso a 1 curso básico</li>
+                    <li>Contenido básico</li>
+                    <li>Acceso al foro comunitario</li>
+                    <li>Recursos gratuitos</li>
+                </ul>
+                <button class="subscribe-btn" onclick="openPaymentModal('free', 0)">Empezar Gratis</button>
+            </div>
+
+            <!-- Plan Básico -->
+            <div class="subscription-plan basic">
+                <h2 class="subscription-title">Plan Básico</h2>
+                <div class="subscription-price">
+                    €29.99
+                    <span class="subscription-period">/mes</span>
+                </div>
+                <ul class="subscription-features">
+                    <li>Acceso a 3 cursos básicos</li>
+                    <li>Contenido actualizado mensualmente</li>
+                    <li>Soporte por email</li>
+                    <li>Certificado básico</li>
+                    <li>Acceso al foro comunitario</li>
+                </ul>
+                <button class="subscribe-btn" onclick="openPaymentModal('basic', 29.99)">Comenzar Ahora</button>
+            </div>
+
+            <!-- Plan Premium -->
+            <div class="subscription-plan premium">
+                <h2 class="subscription-title">Plan Premium</h2>
+                <div class="subscription-price">
+                    €79.99
+                    <span class="subscription-period">/mes</span>
+                </div>
+                <ul class="subscription-features">
+                    <li>Acceso a todos los cursos</li>
+                    <li>Contenido exclusivo premium</li>
+                    <li>Soporte prioritario 24/7</li>
+                    <li>Certificado premium</li>
+                    <li>Mentoría personalizada</li>
+                    <li>Acceso a webinars semanales</li>
+                    <li>Análisis de mercado diarios</li>
+                </ul>
+                <button class="subscribe-btn" onclick="openPaymentModal('premium', 79.99)">¡Únete al Premium!</button>
+            </div>
+
+            <!-- Plan Empresarial -->
+            <div class="subscription-plan enterprise">
+                <h2 class="subscription-title">Plan Empresarial</h2>
+                <div class="subscription-price">
+                    €299.99
+                    <span class="subscription-period">/mes</span>
+                </div>
+                <ul class="subscription-features">
+                    <li>Todo del plan Premium</li>
+                    <li>Acceso para 10 usuarios</li>
+                    <li>Soporte VIP dedicado</li>
+                    <li>Sesiones estratégicas 1:1</li>
+                    <li>Informes personalizados</li>
+                    <li>API de datos en tiempo real</li>
+                    <li>Certificación avanzada</li>
+                    <li>Consultoría empresarial</li>
+                </ul>
+                <button class="subscribe-btn" onclick="openPaymentModal('enterprise', 299.99)">Potencia tu Empresa</button>
+            </div>
+        </div>
+
+        <!-- Modal de Pago -->
+        <div class="payment-modal" id="paymentModal">
+            <div class="payment-content">
+                <span class="close-modal" onclick="closePaymentModal()">&times;</span>
+                <h2>Selecciona tu método de pago</h2>
+                <div class="payment-methods">
+                    <div class="payment-method" onclick="showPaymentForm('card')">
+                        <i class="fas fa-credit-card"></i> Tarjeta de Crédito/Débito
+                    </div>
+                    <div class="payment-method" onclick="showPaymentForm('crypto')">
+                        <i class="fab fa-bitcoin"></i> Cryptocurrency
+                    </div>
+                    <div class="payment-method" onclick="showPaymentForm('paypal')">
+                        <i class="fab fa-paypal"></i> PayPal
+                    </div>
+                </div>
+
+                <!-- Formulario Tarjeta -->
+                <form id="cardForm" class="payment-form">
+                    <div class="form-group">
+                        <label>Número de Tarjeta</label>
+                        <input type="text" placeholder="1234 5678 9012 3456" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Fecha de Expiración</label>
+                        <input type="text" placeholder="MM/YY" required>
+                    </div>
+                    <div class="form-group">
+                        <label>CVV</label>
+                        <input type="text" placeholder="123" required>
+                    </div>
+                    <button type="submit" class="submit-payment" id="cardPaymentButton">Pagar</button>
+                </form>
+
+                <!-- Formulario Crypto -->
+                <form id="cryptoForm" class="payment-form">
+                    <div class="form-group">
+                        <label>Selecciona Cryptocurrency</label>
+                        <select required>
+                            <option value="btc">Bitcoin</option>
+                            <option value="eth">Ethereum</option>
+                            <option value="usdt">USDT</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Dirección de Wallet</label>
+                        <input type="text" placeholder="Introduce tu dirección de wallet" required>
+                    </div>
+                    <button type="submit" class="submit-payment" id="cryptoPaymentButton">Pagar con Crypto</button>
+                </form>
+
+                <!-- Formulario PayPal -->
+                <form id="paypalForm" class="payment-form">
+                    <div class="form-group">
+                        <label>Email de PayPal</label>
+                        <input type="email" placeholder="tu@email.com" required>
+                    </div>
+                    <button type="submit" class="submit-payment" id="paypalPaymentButton">Pagar con PayPal</button>
+                </form>
+            </div>
+        </div>
     </div>
 
     <script>
+        let currentPlan = '';
+        let currentPrice = 0;
+
         function toggleTheme() {
             const body = document.body;
             const icon = document.querySelector('.theme-toggle i');
@@ -342,20 +733,52 @@
             const content = document.getElementById(id);
             const allContents = document.querySelectorAll('.extended-content');
             
-            // Ocultar todos los contenidos extendidos
             allContents.forEach(item => {
                 if(item.id !== id) {
                     item.classList.remove('active');
                 }
             });
             
-            // Mostrar/ocultar el contenido seleccionado
             content.classList.toggle('active');
             
-            // Scroll suave hasta el contenido
             if(content.classList.contains('active')) {
                 content.scrollIntoView({ behavior: 'smooth' });
             }
+        }
+
+        function openPaymentModal(plan, price) {
+            currentPlan = plan;
+            currentPrice = price;
+            
+            if(plan === 'free') {
+                alert('¡Gracias por registrarte en el plan gratuito! Ya puedes acceder al contenido básico.');
+                return;
+            }
+            
+            document.getElementById('paymentModal').style.display = 'block';
+            
+            // Actualizar todos los botones de pago con el precio correcto
+            document.getElementById('cardPaymentButton').textContent = `Pagar €${price}`;
+            document.getElementById('cryptoPaymentButton').textContent = `Pagar €${price} en Crypto`;
+            document.getElementById('paypalPaymentButton').textContent = `Pagar €${price} con PayPal`;
+        }
+
+        function closePaymentModal() {
+            document.getElementById('paymentModal').style.display = 'none';
+            // Ocultar todos los formularios de pago
+            document.querySelectorAll('.payment-form').forEach(form => {
+                form.classList.remove('active');
+            });
+        }
+
+        function showPaymentForm(type) {
+            // Ocultar todos los formularios
+            document.querySelectorAll('.payment-form').forEach(form => {
+                form.classList.remove('active');
+            });
+            
+            // Mostrar el formulario seleccionado
+            document.getElementById(type + 'Form').classList.add('active');
         }
 
         // Cargar tema guardado
@@ -368,6 +791,15 @@
                 icon.classList.remove('fa-moon');
                 icon.classList.add('fa-sun');
             }
+        });
+
+        // Prevenir envío de formularios (demo)
+        document.querySelectorAll('.payment-form').forEach(form => {
+            form.addEventListener('submit', (e) => {
+                e.preventDefault();
+                alert(`¡Gracias por tu compra del ${currentPlan.toUpperCase()} por €${currentPrice}! Este es un demo, no se realizará ningún cargo.`);
+                closePaymentModal();
+            });
         });
     </script>
 </body>
