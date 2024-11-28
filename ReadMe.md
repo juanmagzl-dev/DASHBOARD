@@ -10,7 +10,9 @@
 Visita nuestra plataforma: [InvestP](https://investp.netlify.app/)
 
 <div align="center">
-  <iframe src="https://investp.netlify.app/" width="100%" height="600px" frameborder="0"></iframe>
+  <a href="https://investp.netlify.app/">
+    <img src="image.png" width="100%" alt="Vista previa de la plataforma" />
+  </a>
 </div>
 
 ## 📋 Descripción
@@ -66,3 +68,22 @@ Plataforma web diseñada para facilitar la inversión en criptomonedas y la gest
 - 📊 Análisis de rendimiento
 - 🔔 Alertas personalizadas
 - 📑 Reportes detallados
+
+---
+
+<div align="center">
+  <p>
+    Desarrollado con ❤️ por el equipo de InvestP
+  </p>
+  <p>
+    © 2024 InvestP. Todos los derechos reservados.
+  </p>
+  <p>
+    <a href="https://github.com/investp">GitHub</a> • 
+    <a href="https://twitter.com/investp">Twitter</a> • 
+    <a href="https://linkedin.com/company/investp">LinkedIn</a>
+  </p>
+  <p>
+    Este proyecto está bajo la <a href="https://www.gnu.org/licenses/gpl-3.0.html">Licencia GNU GPL v3</a>
+  </p>
+</div>
