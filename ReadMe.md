@@ -6,6 +6,13 @@
   <img src="https://img.shields.io/badge/Binance-FCD535?style=for-the-badge&logo=binance&logoColor=white" />
 </div>
 
+## 🌐 Demo en Vivo
+Visita nuestra plataforma: [InvestP](https://investp.netlify.app/)
+
+<div align="center">
+  <iframe src="https://investp.netlify.app/" width="100%" height="600px" frameborder="0"></iframe>
+</div>
+
 ## 📋 Descripción
 Plataforma web diseñada para facilitar la inversión en criptomonedas y la gestión de portafolios. Utiliza Three.js para crear una experiencia visual interactiva que permite a los usuarios explorar datos sobre criptomonedas, ver representaciones gráficas y navegar por una interfaz de usuario moderna y dinámica.
 
